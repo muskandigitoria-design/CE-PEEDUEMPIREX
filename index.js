@@ -1,6 +1,5 @@
 const { Telegraf, Markup } = require("telegraf");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
-const creds = require("./credentials.json");
 
 // ================== BOT TOKEN ==================
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -13,15 +12,15 @@ async function initSheet() {
   try {
     const doc = new GoogleSpreadsheet(SHEET_ID);
 
+    // ✔✔ USING RAILWAY ENV VARIABLES (NO credentials.json)
     await doc.useServiceAccountAuth({
-      client_email: creds.client_email,
-      private_key: creds.private_key.replace(/\\n/g, "\n"),
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     });
 
     await doc.loadInfo();
     sheet = doc.sheetsByIndex[0];
 
-    // ================= ADD HEADINGS HERE =================
     await sheet.setHeaderRow([
       "User ID",
       "Name",
