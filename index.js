@@ -1,26 +1,18 @@
 const { Telegraf, Markup } = require("telegraf");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
-const { GoogleAuth } = require("google-auth-library");
 
+// BOT
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+// GOOGLE SHEET
 const SHEET_ID = process.env.SHEET_ID;
 let sheet;
 
-// GOOGLE SHEET CONNECT
+// GOOGLE SHEET CONNECT (NO GOOGLE AUTH LIBRARY NEEDED)
 async function initSheet() {
   try {
-    const auth = new GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-      },
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-    });
-
-    const authClient = await auth.getClient();
-
     const doc = new GoogleSpreadsheet(SHEET_ID);
+
     await doc.useServiceAccountAuth({
       client_email: process.env.GOOGLE_CLIENT_EMAIL,
       private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
@@ -49,14 +41,14 @@ async function initSheet() {
 
 initSheet();
 
+// MEMORY
 let users = {};
 function save(id, key, value) {
   if (!users[id]) users[id] = {};
   users[id][key] = value;
 }
 
-
-// START
+// ================= START =================
 bot.start(async (ctx) => {
   const id = ctx.from.id;
   users[id] = {};
@@ -133,7 +125,6 @@ bot.action("service_account", async (ctx) => {
   );
 });
 
-
 // BUDGET
 const budgets = {
   budget_20: "₹20,000",
@@ -170,7 +161,6 @@ bot.action(Object.keys(budgets), async (ctx) => {
   }
 });
 
-
 // PREMIUM
 const plans = {
   p_3999: "₹3,999 Premium",
@@ -185,7 +175,6 @@ bot.action(Object.keys(plans), async (ctx) => {
 
   await finalStep(ctx);
 });
-
 
 // ACCOUNT CAPITAL
 const capitals = {
@@ -203,8 +192,7 @@ bot.action(Object.keys(capitals), async (ctx) => {
   await finalStep(ctx);
 });
 
-
-// SAVE
+// SAVE + FINAL
 async function finalStep(ctx) {
   const id = ctx.from.id;
 
