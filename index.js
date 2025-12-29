@@ -40,7 +40,6 @@ async function initSheet() {
 }
 
 let users = {};
-
 function save(id, key, value) {
   if (!users[id]) users[id] = {};
   users[id][key] = value;
@@ -54,14 +53,12 @@ bot.start(async (ctx) => {
   await ctx.reply(
 `Welcome to Ce & Pe EduempireX 📈
 
-Hum stock market me kaafi time se active aur experienced team hain.
-Market ke real-time experience ke base par insights aur tips provide karte hain.
+Hum experienced trading team hain aur aapke liye best service recommend karna chahte hain.
 
-Aapke liye best option suggest karne ke liye
-please neeche diye gaye questions ka reply karein 👇
+Chaliye shuru karte hain 😊
 
-✅ Question 1: Market Interest
-1️⃣ Aap kis market me interest rakhte ho?`,
+✅ Question 1:
+Aap kis market me interest rakhte ho?`,
     Markup.inlineKeyboard([
       [Markup.button.callback("📊 Stock Market", "market_stock")],
       [Markup.button.callback("💱 Forex Market", "market_forex")],
@@ -73,15 +70,17 @@ please neeche diye gaye questions ka reply karein 👇
 bot.action(["market_stock", "market_forex"], async (ctx) => {
   const id = ctx.from.id;
 
-  save(id,"market",
+  save(
+    id,
+    "market",
     ctx.update.callback_query.data.includes("stock")
       ? "Stock Market"
       : "Forex Market"
   );
 
-  await ctx.editMessageText(
-`✅ Question 2: Service Type Selection
-2️⃣ Aap kaunsa option choose karna chahoge?`,
+  await ctx.reply(
+`✅ Question 2:
+Aap kaunsa option choose karna chahoge?`,
     Markup.inlineKeyboard([
       [Markup.button.callback("📘 Premium Channel", "service_premium")],
       [Markup.button.callback("🤝 Account Handling", "service_account")],
@@ -89,13 +88,13 @@ bot.action(["market_stock", "market_forex"], async (ctx) => {
   );
 });
 
-// ================= PREMIUM SELECT =================
+// ================= PREMIUM =================
 bot.action("service_premium", async (ctx) => {
   save(ctx.from.id, "service", "Premium Channel");
 
-  await ctx.editMessageText(
-`✅ Question 3: Monthly Budget Range
-3️⃣ Aap monthly approx kitna capital allocate karna chahte ho?`,
+  await ctx.reply(
+`✅ Question 3:
+Aap monthly approx kitna capital invest kar sakte ho?`,
     Markup.inlineKeyboard([
       [Markup.button.callback("💰 ₹20,000", "budget_20")],
       [Markup.button.callback("💰 ₹50,000", "budget_50")],
@@ -105,13 +104,13 @@ bot.action("service_premium", async (ctx) => {
   );
 });
 
-// ================= ACCOUNT HANDLING =================
+// ================= ACCOUNT =================
 bot.action("service_account", async (ctx) => {
   save(ctx.from.id, "service", "Account Handling");
 
-  await ctx.editMessageText(
-`✅ Question 3: Monthly Budget Range
-3️⃣ Aap monthly approx kitna capital allocate karna chahte ho?`,
+  await ctx.reply(
+`✅ Question 3:
+Aap monthly approx kitna capital manage karwana chahoge?`,
     Markup.inlineKeyboard([
       [Markup.button.callback("💰 ₹20,000", "budget_20")],
       [Markup.button.callback("💰 ₹50,000", "budget_50")],
@@ -134,9 +133,9 @@ bot.action(Object.keys(budgets), async (ctx) => {
   save(id, "budget", budgets[ctx.update.callback_query.data]);
 
   if (users[id].service === "Premium Channel") {
-    await ctx.editMessageText(
-`✅ Question 4A: Premium Service Selection
-4️⃣ Aap kaunsi premium service choose karoge?`,
+    await ctx.reply(
+`✅ Question 4:
+Aap kaunsi premium plan lena chahoge?`,
       Markup.inlineKeyboard([
         [Markup.button.callback("🔥 ₹3,999 – Premium", "p1")],
         [Markup.button.callback("🔥 ₹7,999 – Advanced", "p2")],
@@ -144,9 +143,9 @@ bot.action(Object.keys(budgets), async (ctx) => {
       ])
     );
   } else {
-    await ctx.editMessageText(
-`✅ Question 4B: Account Handling Capital
-4️⃣ Kitna capital manage karwana chahoge?`,
+    await ctx.reply(
+`✅ Question 4:
+Account handling ke liye kitna capital allocate karoge?`,
       Markup.inlineKeyboard([
         [Markup.button.callback("💼 ₹25,000", "a1")],
         [Markup.button.callback("💼 ₹50,000", "a2")],
@@ -186,7 +185,7 @@ bot.action(Object.keys(capital), async (ctx) => {
   await finalStep(ctx);
 });
 
-// ================= SAVE + FINAL =================
+// ================= SAVE =================
 async function finalStep(ctx) {
   const id = ctx.from.id;
 
@@ -202,7 +201,7 @@ async function finalStep(ctx) {
     "Date & Time": new Date().toLocaleString(),
   });
 
-  await ctx.editMessageText(
+  await ctx.reply(
 `🎉 Special Limited-Time Offer!
 
 Agar aap admin ko comment karte ho 👇
