@@ -1,14 +1,14 @@
 const { Telegraf, Markup } = require("telegraf");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
 
-// BOT TOKEN
+// BOT
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// GOOGLE SHEET
+// SHEET
 const SHEET_ID = process.env.SHEET_ID;
 let sheet;
 
-// ================= CONNECT GOOGLE SHEET =================
+// ================= GOOGLE SHEET CONNECT =================
 async function initSheet() {
   try {
     const doc = new GoogleSpreadsheet(SHEET_ID);
@@ -26,14 +26,15 @@ async function initSheet() {
       "Name",
       "Username",
       "Market Interest",
-      "Service Type",
       "Budget",
-      "Premium Selection",
-      "Account Handling Capital",
-      "Date & Time",
+      "Service Type",
+      "Premium Plan",
+      "Account Handling Confirm",
+      "Account Capital",
+      "Date & Time"
     ]);
 
-    console.log("Google Sheet Connected 🟢");
+    console.log("Sheet Connected 🟢");
   } catch (err) {
     console.log("Sheet Error:", err);
   }
@@ -53,161 +54,162 @@ bot.start(async (ctx) => {
   await ctx.reply(
 `Welcome to Ce & Pe EduempireX 📈
 
-Hum experienced trading team hain aur aapke liye best service recommend karna chahte hain.
+Hum stock market me kaafi time se active aur experienced team hain.
+Market ke real-time experience ke base par insights aur tips provide karte hain.
 
-Chaliye shuru karte hain 😊
+Aapke liye best option suggest karne ke liye
+please neeche diye gaye questions ka reply karein 👇
 
-✅ Question 1:
-Aap kis market me interest rakhte ho?`,
-    Markup.inlineKeyboard([
-      [Markup.button.callback("📊 Stock Market", "market_stock")],
-      [Markup.button.callback("💱 Forex Market", "market_forex")],
-    ])
-  );
+✅ Question 1: Market Interest
+1️⃣ Aap kis market me interest rakhte ho?`,
+Markup.inlineKeyboard([
+  [Markup.button.callback("📊 Stock Market", "market_stock")],
+  [Markup.button.callback("💱 Forex Market", "market_forex")]
+]))
 });
 
-// ================= MARKET =================
-bot.action(["market_stock", "market_forex"], async (ctx) => {
+// ================= Q1 MARKET =================
+bot.action(["market_stock","market_forex"], async(ctx)=>{
   const id = ctx.from.id;
 
-  save(
-    id,
-    "market",
+  save(id,"market",
     ctx.update.callback_query.data.includes("stock")
-      ? "Stock Market"
-      : "Forex Market"
+    ? "Stock Market"
+    : "Forex Market"
   );
 
   await ctx.reply(
-`✅ Question 2:
-Aap kaunsa option choose karna chahoge?`,
-    Markup.inlineKeyboard([
-      [Markup.button.callback("📘 Premium Channel", "service_premium")],
-      [Markup.button.callback("🤝 Account Handling", "service_account")],
-    ])
-  );
+`✅ Question 2: Monthly Budget Range
+2️⃣ Aap monthly approx kitna capital allocate karna chahte ho?`,
+Markup.inlineKeyboard([
+  [Markup.button.callback("💰 ₹20,000","b20")],
+  [Markup.button.callback("💰 ₹50,000","b50")],
+  [Markup.button.callback("💰 ₹1,00,000","b1")],
+  [Markup.button.callback("💰 ₹2,50,000","b25")]
+]))
+});
+
+// ================= Q2 BUDGET =================
+const budgetMap = {
+  b20:"₹20,000",
+  b50:"₹50,000",
+  b1:"₹1,00,000",
+  b25:"₹2,50,000"
+};
+
+bot.action(Object.keys(budgetMap),async(ctx)=>{
+  const id = ctx.from.id;
+  save(id,"budget",budgetMap[ctx.update.callback_query.data]);
+
+  await ctx.reply(
+`✅ Question 3: Service Type Selection
+3️⃣ Aap kaunsa option choose karna chahoge?`,
+Markup.inlineKeyboard([
+  [Markup.button.callback("📘 Premium Channel","premium")],
+  [Markup.button.callback("🤝 Account Handling","account")]
+]))
 });
 
 // ================= PREMIUM =================
-bot.action("service_premium", async (ctx) => {
-  save(ctx.from.id, "service", "Premium Channel");
+bot.action("premium",async(ctx)=>{
+  save(ctx.from.id,"service","Premium Channel");
 
   await ctx.reply(
-`✅ Question 3:
-Aap monthly approx kitna capital invest kar sakte ho?`,
-    Markup.inlineKeyboard([
-      [Markup.button.callback("💰 ₹20,000", "budget_20")],
-      [Markup.button.callback("💰 ₹50,000", "budget_50")],
-      [Markup.button.callback("💰 ₹1,00,000", "budget_1")],
-      [Markup.button.callback("💰 ₹2,50,000", "budget_25")],
-    ])
-  );
+`✅ Question 4A: Premium Service Selection
+4️⃣ Aap humari kaunsi premium service choose karna chahoge?`,
+Markup.inlineKeyboard([
+  [Markup.button.callback("🔥 ₹3,999 – Premium","p3999")],
+  [Markup.button.callback("🔥 ₹7,999 – Advanced","p7999")],
+  [Markup.button.callback("⭐ ₹21,999 – Lifetime","p21999")]
+]))
 });
 
-// ================= ACCOUNT =================
-bot.action("service_account", async (ctx) => {
-  save(ctx.from.id, "service", "Account Handling");
-
-  await ctx.reply(
-`✅ Question 3:
-Aap monthly approx kitna capital manage karwana chahoge?`,
-    Markup.inlineKeyboard([
-      [Markup.button.callback("💰 ₹20,000", "budget_20")],
-      [Markup.button.callback("💰 ₹50,000", "budget_50")],
-      [Markup.button.callback("💰 ₹1,00,000", "budget_1")],
-      [Markup.button.callback("💰 ₹2,50,000", "budget_25")],
-    ])
-  );
-});
-
-// ================= BUDGET =================
-const budgets = {
-  budget_20: "₹20,000",
-  budget_50: "₹50,000",
-  budget_1: "₹1,00,000",
-  budget_25: "₹2,50,000",
-};
-
-bot.action(Object.keys(budgets), async (ctx) => {
-  const id = ctx.from.id;
-  save(id, "budget", budgets[ctx.update.callback_query.data]);
-
-  if (users[id].service === "Premium Channel") {
-    await ctx.reply(
-`✅ Question 4:
-Aap kaunsi premium plan lena chahoge?`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback("🔥 ₹3,999 – Premium", "p1")],
-        [Markup.button.callback("🔥 ₹7,999 – Advanced", "p2")],
-        [Markup.button.callback("⭐ ₹21,999 – Lifetime", "p3")],
-      ])
-    );
-  } else {
-    await ctx.reply(
-`✅ Question 4:
-Account handling ke liye kitna capital allocate karoge?`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback("💼 ₹25,000", "a1")],
-        [Markup.button.callback("💼 ₹50,000", "a2")],
-        [Markup.button.callback("💼 ₹1,00,000", "a3")],
-        [Markup.button.callback("💼 ₹2,50,000", "a4")],
-      ])
-    );
-  }
-});
-
-// PREMIUM PLANS
 const plans = {
-  p1: "₹3,999 Premium",
-  p2: "₹7,999 Advanced",
-  p3: "₹21,999 Lifetime",
+  p3999:"₹3,999 Premium",
+  p7999:"₹7,999 Advanced",
+  p21999:"₹21,999 Lifetime"
 };
 
-bot.action(Object.keys(plans), async (ctx) => {
+bot.action(Object.keys(plans),async(ctx)=>{
   const id = ctx.from.id;
-  save(id, "premium_plan", plans[ctx.update.callback_query.data]);
-  save(id, "account_capital", "Not Applicable");
+  save(id,"premium_plan",plans[ctx.update.callback_query.data]);
+  save(id,"account_confirm","Not Applicable");
+  save(id,"account_capital","Not Applicable");
   await finalStep(ctx);
 });
 
-// ACCOUNT CAPITAL
-const capital = {
-  a1: "₹25,000",
-  a2: "₹50,000",
-  a3: "₹1,00,000",
-  a4: "₹2,50,000",
-};
+// ================= ACCOUNT HANDLING =================
+bot.action("account",async(ctx)=>{
+  save(ctx.from.id,"service","Account Handling");
 
-bot.action(Object.keys(capital), async (ctx) => {
-  const id = ctx.from.id;
-  save(id, "account_capital", capital[ctx.update.callback_query.data]);
-  save(id, "premium_plan", "Not Applicable");
+  await ctx.reply(
+`✅ Question 4B: Account Handling Confirmation
+4️⃣ Kya aap account handling service karwana chahte ho?`,
+Markup.inlineKeyboard([
+  [Markup.button.callback("✅ Yes, Account Handling","yes_acc")],
+  [Markup.button.callback("❌ No, Only Premium","no_acc")]
+]))
+});
+
+bot.action("no_acc",async(ctx)=>{
+  save(ctx.from.id,"account_confirm","Denied");
+  save(ctx.from.id,"account_capital","Not Applicable");
+  save(ctx.from.id,"premium_plan","Not Selected");
   await finalStep(ctx);
 });
 
-// ================= SAVE =================
-async function finalStep(ctx) {
+bot.action("yes_acc",async(ctx)=>{
+  save(ctx.from.id,"account_confirm","Confirmed");
+
+  await ctx.reply(
+`✅ Question 5: Account Handling Capital
+5️⃣ Account handling ke liye aap kitna capital allocate kar sakte ho?`,
+Markup.inlineKeyboard([
+  [Markup.button.callback("💼 ₹25,000","c25")],
+  [Markup.button.callback("💼 ₹50,000","c50")],
+  [Markup.button.callback("💼 ₹1,00,000","c1")],
+  [Markup.button.callback("💼 ₹2,50,000","c25l")]
+]))
+});
+
+const caps = {
+  c25:"₹25,000",
+  c50:"₹50,000",
+  c1:"₹1,00,000",
+  c25l:"₹2,50,000"
+};
+
+bot.action(Object.keys(caps),async(ctx)=>{
+  const id = ctx.from.id;
+  save(id,"account_capital",caps[ctx.update.callback_query.data]);
+  save(id,"premium_plan","Not Applicable");
+  await finalStep(ctx);
+});
+
+// ================= SAVE + FINAL =================
+async function finalStep(ctx){
   const id = ctx.from.id;
 
   await sheet.addRow({
-    "User ID": id,
-    Name: ctx.from.first_name || "",
-    Username: ctx.from.username || "",
-    "Market Interest": users[id].market,
-    "Service Type": users[id].service,
-    "Budget": users[id].budget,
-    "Premium Selection": users[id].premium_plan,
-    "Account Handling Capital": users[id].account_capital,
-    "Date & Time": new Date().toLocaleString(),
+    "User ID":id,
+    Name:ctx.from.first_name || "",
+    Username:ctx.from.username || "",
+    "Market Interest":users[id].market,
+    "Budget":users[id].budget,
+    "Service Type":users[id].service,
+    "Premium Plan":users[id].premium_plan || "N/A",
+    "Account Handling Confirm":users[id].account_confirm || "N/A",
+    "Account Handling Capital":users[id].account_capital || "N/A",
+    "Date & Time":new Date().toLocaleString(),
   });
 
   await ctx.reply(
 `🎉 Special Limited-Time Offer!
 
-Agar aap admin ko comment karte ho 👇
+Agar aap admin ko comment karte ho 👇  
 👉 ce&pe25
 
-Toh aapko premium plans par **50% discount** milega 🎁
+Toh aapko premium plans par **50% ka special discount** milega 🎁
 
 📩 Next Step:
 Admin ko **ce&pe25** send karein
@@ -218,7 +220,8 @@ https://t.me/TRADEwithSHAANVii`
   );
 }
 
-(async () => {
+// ================= START BOT =================
+(async()=>{
   await initSheet();
   bot.launch();
   console.log("BOT LIVE 🚀");
