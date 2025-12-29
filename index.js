@@ -2,14 +2,12 @@ const { Telegraf, Markup } = require("telegraf");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
 const { GoogleAuth } = require("google-auth-library");
 
-// BOT TOKEN
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// GOOGLE SHEET
 const SHEET_ID = process.env.SHEET_ID;
 let sheet;
 
-// ============== GOOGLE SHEET CONNECT ==============
+// GOOGLE SHEET CONNECT
 async function initSheet() {
   try {
     const auth = new GoogleAuth({
@@ -20,9 +18,15 @@ async function initSheet() {
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
-    const doc = new GoogleSpreadsheet(SHEET_ID, auth);
-    await doc.loadInfo();
+    const authClient = await auth.getClient();
 
+    const doc = new GoogleSpreadsheet(SHEET_ID);
+    await doc.useServiceAccountAuth({
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    });
+
+    await doc.loadInfo();
     sheet = doc.sheetsByIndex[0];
 
     await sheet.setHeaderRow([
@@ -46,19 +50,19 @@ async function initSheet() {
 initSheet();
 
 let users = {};
-
 function save(id, key, value) {
   if (!users[id]) users[id] = {};
   users[id][key] = value;
 }
 
-// ================= START =================
+
+// START
 bot.start(async (ctx) => {
   const id = ctx.from.id;
   users[id] = {};
 
   await ctx.reply(
-    `Welcome to Ce & Pe EduempireX 📈
+`Welcome to Ce & Pe EduempireX 📈
 
 Hum stock market me kaafi time se active aur experienced team hain.
 Market ke real-time experience ke base par insights aur tips provide karte hain.
@@ -75,9 +79,10 @@ please neeche diye gaye questions ka reply karein 👇
   );
 });
 
-// Q1 MARKET
+// MARKET
 bot.action(["market_stock", "market_forex"], async (ctx) => {
   const id = ctx.from.id;
+
   save(
     id,
     "market",
@@ -87,7 +92,7 @@ bot.action(["market_stock", "market_forex"], async (ctx) => {
   );
 
   await ctx.editMessageText(
-    `✅ Question 2: Service Type Selection
+`✅ Question 2: Service Type Selection
 2️⃣ Aap kaunsa option choose karna chahoge?`,
     Markup.inlineKeyboard([
       [Markup.button.callback("📘 Premium Channel", "service_premium")],
@@ -96,12 +101,12 @@ bot.action(["market_stock", "market_forex"], async (ctx) => {
   );
 });
 
-// Q2 SERVICE TYPE
+// SERVICE PREMIUM
 bot.action("service_premium", async (ctx) => {
   save(ctx.from.id, "service", "Premium Channel");
 
   await ctx.editMessageText(
-    `✅ Question 3: Monthly Budget Range
+`✅ Question 3: Monthly Budget Range
 3️⃣ Aap monthly approx kitna capital allocate karna chahte ho?`,
     Markup.inlineKeyboard([
       [Markup.button.callback("💰 ₹20,000", "budget_20")],
@@ -112,11 +117,12 @@ bot.action("service_premium", async (ctx) => {
   );
 });
 
+// SERVICE ACCOUNT
 bot.action("service_account", async (ctx) => {
   save(ctx.from.id, "service", "Account Handling");
 
   await ctx.editMessageText(
-    `✅ Question 3: Monthly Budget Range
+`✅ Question 3: Monthly Budget Range
 3️⃣ Aap monthly approx kitna capital allocate karna chahte ho?`,
     Markup.inlineKeyboard([
       [Markup.button.callback("💰 ₹20,000", "budget_20")],
@@ -127,7 +133,8 @@ bot.action("service_account", async (ctx) => {
   );
 });
 
-// Q3 BUDGET
+
+// BUDGET
 const budgets = {
   budget_20: "₹20,000",
   budget_50: "₹50,000",
@@ -141,7 +148,7 @@ bot.action(Object.keys(budgets), async (ctx) => {
 
   if (users[id].service === "Premium Channel") {
     await ctx.editMessageText(
-      `✅ Question 4A: Premium Service Selection
+`✅ Question 4A: Premium Service Selection
 4️⃣ Aap humari kaunsi premium service choose karna chahoge?`,
       Markup.inlineKeyboard([
         [Markup.button.callback("🔥 ₹3,999 – Premium", "p_3999")],
@@ -151,7 +158,7 @@ bot.action(Object.keys(budgets), async (ctx) => {
     );
   } else {
     await ctx.editMessageText(
-      `✅ Question 4B: Account Handling Capital
+`✅ Question 4B: Account Handling Capital
 4️⃣ Account handling ke liye aap kitna capital allocate kar sakte ho?`,
       Markup.inlineKeyboard([
         [Markup.button.callback("💼 ₹25,000", "a_25")],
@@ -163,7 +170,8 @@ bot.action(Object.keys(budgets), async (ctx) => {
   }
 });
 
-// Premium Plans
+
+// PREMIUM
 const plans = {
   p_3999: "₹3,999 Premium",
   p_7999: "₹7,999 Advanced",
@@ -178,7 +186,8 @@ bot.action(Object.keys(plans), async (ctx) => {
   await finalStep(ctx);
 });
 
-// Account Capital
+
+// ACCOUNT CAPITAL
 const capitals = {
   a_25: "₹25,000",
   a_50: "₹50,000",
@@ -194,7 +203,8 @@ bot.action(Object.keys(capitals), async (ctx) => {
   await finalStep(ctx);
 });
 
-// SAVE + FINAL MESSAGE
+
+// SAVE
 async function finalStep(ctx) {
   const id = ctx.from.id;
 
