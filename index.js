@@ -1,14 +1,14 @@
 const { Telegraf, Markup } = require("telegraf");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
 
-// BOT
+// BOT TOKEN
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // GOOGLE SHEET
 const SHEET_ID = process.env.SHEET_ID;
 let sheet;
 
-// GOOGLE SHEET CONNECT (NO GOOGLE AUTH LIBRARY NEEDED)
+// ================= CONNECT GOOGLE SHEET =================
 async function initSheet() {
   try {
     const doc = new GoogleSpreadsheet(SHEET_ID);
@@ -39,10 +39,8 @@ async function initSheet() {
   }
 }
 
-initSheet();
-
-// MEMORY
 let users = {};
+
 function save(id, key, value) {
   if (!users[id]) users[id] = {};
   users[id][key] = value;
@@ -71,13 +69,11 @@ please neeche diye gaye questions ka reply karein 👇
   );
 });
 
-// MARKET
+// ================= MARKET =================
 bot.action(["market_stock", "market_forex"], async (ctx) => {
   const id = ctx.from.id;
 
-  save(
-    id,
-    "market",
+  save(id,"market",
     ctx.update.callback_query.data.includes("stock")
       ? "Stock Market"
       : "Forex Market"
@@ -93,7 +89,7 @@ bot.action(["market_stock", "market_forex"], async (ctx) => {
   );
 });
 
-// SERVICE PREMIUM
+// ================= PREMIUM SELECT =================
 bot.action("service_premium", async (ctx) => {
   save(ctx.from.id, "service", "Premium Channel");
 
@@ -109,7 +105,7 @@ bot.action("service_premium", async (ctx) => {
   );
 });
 
-// SERVICE ACCOUNT
+// ================= ACCOUNT HANDLING =================
 bot.action("service_account", async (ctx) => {
   save(ctx.from.id, "service", "Account Handling");
 
@@ -125,7 +121,7 @@ bot.action("service_account", async (ctx) => {
   );
 });
 
-// BUDGET
+// ================= BUDGET =================
 const budgets = {
   budget_20: "₹20,000",
   budget_50: "₹50,000",
@@ -140,59 +136,57 @@ bot.action(Object.keys(budgets), async (ctx) => {
   if (users[id].service === "Premium Channel") {
     await ctx.editMessageText(
 `✅ Question 4A: Premium Service Selection
-4️⃣ Aap humari kaunsi premium service choose karna chahoge?`,
+4️⃣ Aap kaunsi premium service choose karoge?`,
       Markup.inlineKeyboard([
-        [Markup.button.callback("🔥 ₹3,999 – Premium", "p_3999")],
-        [Markup.button.callback("🔥 ₹7,999 – Advanced", "p_7999")],
-        [Markup.button.callback("⭐ ₹21,999 – Lifetime", "p_21999")],
+        [Markup.button.callback("🔥 ₹3,999 – Premium", "p1")],
+        [Markup.button.callback("🔥 ₹7,999 – Advanced", "p2")],
+        [Markup.button.callback("⭐ ₹21,999 – Lifetime", "p3")],
       ])
     );
   } else {
     await ctx.editMessageText(
 `✅ Question 4B: Account Handling Capital
-4️⃣ Account handling ke liye aap kitna capital allocate kar sakte ho?`,
+4️⃣ Kitna capital manage karwana chahoge?`,
       Markup.inlineKeyboard([
-        [Markup.button.callback("💼 ₹25,000", "a_25")],
-        [Markup.button.callback("💼 ₹50,000", "a_50")],
-        [Markup.button.callback("💼 ₹1,00,000", "a_1")],
-        [Markup.button.callback("💼 ₹2,50,000", "a_25l")],
+        [Markup.button.callback("💼 ₹25,000", "a1")],
+        [Markup.button.callback("💼 ₹50,000", "a2")],
+        [Markup.button.callback("💼 ₹1,00,000", "a3")],
+        [Markup.button.callback("💼 ₹2,50,000", "a4")],
       ])
     );
   }
 });
 
-// PREMIUM
+// PREMIUM PLANS
 const plans = {
-  p_3999: "₹3,999 Premium",
-  p_7999: "₹7,999 Advanced",
-  p_21999: "₹21,999 Lifetime",
+  p1: "₹3,999 Premium",
+  p2: "₹7,999 Advanced",
+  p3: "₹21,999 Lifetime",
 };
 
 bot.action(Object.keys(plans), async (ctx) => {
   const id = ctx.from.id;
   save(id, "premium_plan", plans[ctx.update.callback_query.data]);
   save(id, "account_capital", "Not Applicable");
-
   await finalStep(ctx);
 });
 
 // ACCOUNT CAPITAL
-const capitals = {
-  a_25: "₹25,000",
-  a_50: "₹50,000",
-  a_1: "₹1,00,000",
-  a_25l: "₹2,50,000",
+const capital = {
+  a1: "₹25,000",
+  a2: "₹50,000",
+  a3: "₹1,00,000",
+  a4: "₹2,50,000",
 };
 
-bot.action(Object.keys(capitals), async (ctx) => {
+bot.action(Object.keys(capital), async (ctx) => {
   const id = ctx.from.id;
-  save(id, "account_capital", capitals[ctx.update.callback_query.data]);
+  save(id, "account_capital", capital[ctx.update.callback_query.data]);
   save(id, "premium_plan", "Not Applicable");
-
   await finalStep(ctx);
 });
 
-// SAVE + FINAL
+// ================= SAVE + FINAL =================
 async function finalStep(ctx) {
   const id = ctx.from.id;
 
@@ -214,16 +208,19 @@ async function finalStep(ctx) {
 Agar aap admin ko comment karte ho 👇
 👉 ce&pe25
 
-Toh aapko premium plans par **50% ka special discount** milega.
+Toh aapko premium plans par **50% discount** milega 🎁
 
 📩 Next Step:
-Please admin ko **ce&pe25** comment karein,
-aur hamari team aapse directly connect karegi 🙌
+Admin ko **ce&pe25** send karein
+Aur team aapse contact karegi 🙌
 
 🔗 Admin Contact:
 https://t.me/TRADEwithSHAANVii`
   );
 }
 
-bot.launch();
-console.log("BOT LIVE 🚀");
+(async () => {
+  await initSheet();
+  bot.launch();
+  console.log("BOT LIVE 🚀");
+})();
