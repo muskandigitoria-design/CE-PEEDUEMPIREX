@@ -1,5 +1,6 @@
 const { Telegraf, Markup } = require("telegraf");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
+const { GoogleAuth } = require("google-auth-library");
 
 // BOT TOKEN
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -8,16 +9,20 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const SHEET_ID = process.env.SHEET_ID;
 let sheet;
 
+// ============== GOOGLE SHEET CONNECT ==============
 async function initSheet() {
   try {
-    const doc = new GoogleSpreadsheet(SHEET_ID);
-
-    await doc.useServiceAccountAuth({
-      client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    const auth = new GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      },
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
+    const doc = new GoogleSpreadsheet(SHEET_ID, auth);
     await doc.loadInfo();
+
     sheet = doc.sheetsByIndex[0];
 
     await sheet.setHeaderRow([
@@ -73,7 +78,13 @@ please neeche diye gaye questions ka reply karein 👇
 // Q1 MARKET
 bot.action(["market_stock", "market_forex"], async (ctx) => {
   const id = ctx.from.id;
-  save(id, "market", ctx.update.callback_query.data.includes("stock") ? "Stock Market" : "Forex Market");
+  save(
+    id,
+    "market",
+    ctx.update.callback_query.data.includes("stock")
+      ? "Stock Market"
+      : "Forex Market"
+  );
 
   await ctx.editMessageText(
     `✅ Question 2: Service Type Selection
@@ -212,7 +223,7 @@ Please admin ko **ce&pe25** comment karein,
 aur hamari team aapse directly connect karegi 🙌
 
 🔗 Admin Contact:
-https://indexup.site/neww.html`
+https://t.me/TRADEwithSHAANVii`
   );
 }
 
