@@ -55,7 +55,15 @@ aur real-time market based guidance provide karte hain.
 
 Best option choose karne ke liye  
 please simple questions ka answer dijiye 👇`,
-{ parse_mode: "Markdown" }
+{
+  parse_mode: "Markdown",
+  ...Markup.inlineKeyboard([
+    [
+      Markup.button.url("⭐ Join Our Channel", "https://t.me/+7pvOYZ7fvqgyOTI1"),
+      Markup.button.url("📩 Contact Admin", "https://t.me/TRADEwithSHAANVii")
+    ]
+  ])
+}
 );
 
   await ctx.reply(
@@ -199,7 +207,10 @@ Team aapse directly connect karegi 😊`,
 {
   parse_mode:"Markdown",
   ...Markup.inlineKeyboard([
-    [Markup.button.url("📩 Contact Admin","https://t.me/TRADEwithSHAANVii")]
+    [
+      Markup.button.url("⭐ Join Our Channel","https://t.me/+7pvOYZ7fvqgyOTI1"),
+      Markup.button.url("📩 Contact Admin","https://t.me/TRADEwithSHAANVii")
+    ]
   ])
 });
 }
